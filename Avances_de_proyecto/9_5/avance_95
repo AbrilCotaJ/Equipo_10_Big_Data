@@ -1,0 +1,43 @@
+import pandas as pd 
+import json 
+from sklearn.model_selection import train_test_split 
+from sklearn.linear_model import LogisticRegression 
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report 
+ 
+# Cargar datos desde archivos JSON 
+with open('user_item_data.json', 'r') as f: 
+    user_item_data = json.load(f) 
+ 
+with open('review_data.json', 'r') as f:
+    review_data = json.load(f) 
+ 
+with open('bundle_data.json', 'r') as f: 
+    bundle_data = json.load(f) 
+ 
+# Crear DataFrames 
+user_item_df = pd.DataFrame(user_item_data['items']) 
+review_df = pd.DataFrame(review_data['reviews']) 
+bundle_df = pd.DataFrame(bundle_data['items']) 
+ 
+# Preprocesamiento 
+review_df = review_df.rename(columns={'username': 'userID', 'product_id': 'itemID', 'text': 'rating'}) 
+review_df['rating'] = review_df['rating'].astype(float) 
+ 
+# Características y etiquetas 
+X = review_df[['userID', 'itemID']] 
+y = (review_df['rating'] > 3).astype(int)  # Clasificación binaria: 1 si rating > 3, 0 en caso contrario 
+ 
+# División de datos en conjuntos de entrenamiento y prueba 
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42) 
+ 
+# Entrenar el modelo de Regresión Logística 
+log_reg = LogisticRegression() 
+log_reg.fit(X_train, y_train) 
+ 
+# Predicciones 
+y_pred = log_reg.predict(X_test) 
+ 
+# Evaluación del modelo 
+print("Accuracy:", accuracy_score(y_test, y_pred)) 
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred)) 
+print("Classification Report:\n", classification_report(y_test, y_pred)) 
